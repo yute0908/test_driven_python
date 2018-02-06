@@ -2,5 +2,7 @@ __pycache__
 .ropeproject
 *.swp
 *.pyc
+.idea
+venv
 dist
 StockAlerter.egg-info
