@@ -33,6 +33,7 @@ class StockTest(unittest.TestCase):
         self.goog.update(datetime(2014, 2, 12), price=10)
         self.assertEqual(8, self.goog.price)
 
+
 class StockTrendTest(unittest.TestCase):
     def setUp(self):
         self.goog = Stock("GOOG")
