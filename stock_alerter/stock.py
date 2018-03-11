@@ -52,23 +52,21 @@ class Stock:
             return StockSignal.neutral
 
         # BUY signal
-        if sum([update.price for update in
-                closing_price_list[-self.LONG_TERM_TIMESPAN - 1:-1]]) / self.LONG_TERM_TIMESPAN > sum(
-            [update.price for update in
-             closing_price_list[-self.SHORT_TERM_TIMESPAN - 1:-1]]) / self.SHORT_TERM_TIMESPAN \
-                and sum(
-            [update.price for update in closing_price_list[-self.LONG_TERM_TIMESPAN:]]) / self.LONG_TERM_TIMESPAN < sum(
-            [update.price for update in closing_price_list[-self.SHORT_TERM_TIMESPAN:]]) / self.SHORT_TERM_TIMESPAN:
+        long_term_series = closing_price_list[-self.LONG_TERM_TIMESPAN:]
+        prev_long_term_series = closing_price_list[-self.LONG_TERM_TIMESPAN - 1:-1]
+        short_term_series = closing_price_list[-self.SHORT_TERM_TIMESPAN:]
+        prev_short_term_series = closing_price_list[-self.SHORT_TERM_TIMESPAN - 1:-1]
+        if sum([update.price for update in prev_long_term_series]) / self.LONG_TERM_TIMESPAN > \
+                sum([update.price for update in prev_short_term_series]) / self.SHORT_TERM_TIMESPAN \
+                and sum([update.price for update in long_term_series]) / self.LONG_TERM_TIMESPAN < \
+                sum([update.price for update in short_term_series]) / self.SHORT_TERM_TIMESPAN:
             return StockSignal.buy
 
         # SELL signal
-        if sum([update.price for update in
-                closing_price_list[-self.LONG_TERM_TIMESPAN - 1:-1]]) / self.LONG_TERM_TIMESPAN < sum(
-            [update.price for update in
-             closing_price_list[-self.SHORT_TERM_TIMESPAN - 1:-1]]) / self.SHORT_TERM_TIMESPAN \
-                and sum(
-            [update.price for update in closing_price_list[-self.LONG_TERM_TIMESPAN:]]) / self.LONG_TERM_TIMESPAN > sum(
-            [update.price for update in closing_price_list[-self.SHORT_TERM_TIMESPAN:]]) / self.SHORT_TERM_TIMESPAN:
+        if sum([update.price for update in prev_long_term_series]) / self.LONG_TERM_TIMESPAN < \
+                sum([update.price for update in prev_short_term_series]) / self.SHORT_TERM_TIMESPAN \
+                and sum([update.price for update in long_term_series]) / self.LONG_TERM_TIMESPAN > \
+                sum([update.price for update in short_term_series]) / self.SHORT_TERM_TIMESPAN:
             return StockSignal.sell
 
         # NEUTRAL signal
