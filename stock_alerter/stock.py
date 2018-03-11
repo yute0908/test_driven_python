@@ -4,7 +4,11 @@ from datetime import timedelta
 
 PriceEvent = collections.namedtuple("PriceEvent", ["timestamp", "price"])
 
+
 class Stock:
+    LONG_TERM_TIMESPAN = 10
+    SHORT_TERM_TIMESPAN = 5
+
     def __init__(self, symbol):
         self.symbol = symbol
         self.price_history = []
@@ -22,31 +26,42 @@ class Stock:
         return self.price_history[-3].price < self.price_history[-2].price < self.price_history[-1].price
 
     def get_crossover_signal(self, on_date):
-        cpl = []
-        for i in range(11):
+        closing_price_list = []
+        NUM_DAYS = self.LONG_TERM_TIMESPAN + 1
+        for i in range(NUM_DAYS):
             chk = on_date.date() - timedelta(i)
             for price_event in reversed(self.price_history):
                 if price_event.timestamp.date() > chk:
                     pass
                 if price_event.timestamp.date() == chk:
-                    cpl.insert(0, price_event)
+                    closing_price_list.insert(0, price_event)
                     break
                 if price_event.timestamp.date() < chk:
-                    cpl.insert(0, price_event)
+                    closing_price_list.insert(0, price_event)
                     break
 
         # Return NEUTRAL signal
-        if len(cpl) < 11:
+        if len(closing_price_list) < NUM_DAYS:
             return 0
 
         # BUY signal
-        if sum([update.price for update in cpl[-11:-1]]) / 10 > sum([update.price for update in cpl[-6:-1]]) / 5 \
-                and sum([update.price for update in cpl[-10:]]) / 10 < sum([update.price for update in cpl[-5:]]) / 5:
+        if sum([update.price for update in
+                closing_price_list[-self.LONG_TERM_TIMESPAN - 1:-1]]) / self.LONG_TERM_TIMESPAN > sum(
+            [update.price for update in
+             closing_price_list[-self.SHORT_TERM_TIMESPAN - 1:-1]]) / self.SHORT_TERM_TIMESPAN \
+                and sum(
+            [update.price for update in closing_price_list[-self.LONG_TERM_TIMESPAN:]]) / self.LONG_TERM_TIMESPAN < sum(
+            [update.price for update in closing_price_list[-self.SHORT_TERM_TIMESPAN:]]) / self.SHORT_TERM_TIMESPAN:
             return 1
 
         # SELL signal
-        if sum([update.price for update in cpl[-11:-1]]) / 10 < sum([update.price for update in cpl[-6:-1]]) / 5 \
-                and sum([update.price for update in cpl[-10:]]) / 10 > sum([update.price for update in cpl[-5:]]) / 5:
+        if sum([update.price for update in
+                closing_price_list[-self.LONG_TERM_TIMESPAN - 1:-1]]) / self.LONG_TERM_TIMESPAN < sum(
+            [update.price for update in
+             closing_price_list[-self.SHORT_TERM_TIMESPAN - 1:-1]]) / self.SHORT_TERM_TIMESPAN \
+                and sum(
+            [update.price for update in closing_price_list[-self.LONG_TERM_TIMESPAN:]]) / self.LONG_TERM_TIMESPAN > sum(
+            [update.price for update in closing_price_list[-self.SHORT_TERM_TIMESPAN:]]) / self.SHORT_TERM_TIMESPAN:
             return -1
 
         # NEUTRAL signal
