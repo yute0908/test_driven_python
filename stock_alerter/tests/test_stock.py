@@ -3,7 +3,7 @@ import unittest
 
 from datetime import datetime, timedelta
 
-from ..stock import Stock
+from ..stock import Stock, StockSignal
 
 
 class StockTest(unittest.TestCase):
@@ -120,7 +120,7 @@ class StockCrossOverSignalTest(unittest.TestCase):
     def test_stock_with_no_data_returns_neutral(self):
         date_to_check = datetime(2014, 2, 13)
         self.given_a_series_of_prices([])
-        self.assertEqual(0, self.goog.get_crossover_signal(date_to_check))
+        self.assertEqual(StockSignal.neutral, self.goog.get_crossover_signal(date_to_check))
 
     def test_stock_with_less_data_returns_neutral(self):
         """Even though the series has a downward crossover, we return neutral
@@ -128,34 +128,34 @@ class StockCrossOverSignalTest(unittest.TestCase):
 
         date_to_check = datetime(2014, 2, 13)
         self.given_a_series_of_prices([20, 21, 22, 23, 24, 25, 26, 27, 28, 1])
-        self.assertEqual(0, self.goog.get_crossover_signal(date_to_check))
+        self.assertEqual(StockSignal.neutral, self.goog.get_crossover_signal(date_to_check))
 
     def test_stock_with_no_crossover_returns_neutral(self):
         date_to_check = datetime(2014, 2, 13)
         self.given_a_series_of_prices([
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
-        self.assertEqual(0,
+        self.assertEqual(StockSignal.neutral,
                          self.goog.get_crossover_signal(date_to_check))
 
     def test_with_downward_crossover_returns_sell(self):
         date_to_check = datetime(2014, 2, 13)
         self.given_a_series_of_prices([
             21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 4])
-        self.assertEqual(-1,
+        self.assertEqual(StockSignal.sell,
                          self.goog.get_crossover_signal(date_to_check))
 
     def test_with_upward_crossover_returns_buy(self):
         date_to_check = datetime(2014, 2, 13)
         self.given_a_series_of_prices([
             29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 46])
-        self.assertEqual(1,
+        self.assertEqual(StockSignal.buy,
                          self.goog.get_crossover_signal(date_to_check))
 
     def test_should_only_look_at_closing_price(self):
         date_to_check = datetime(2014, 2, 13)
         self.given_a_series_of_prices([
             29, [5, 28], [5, 27], 26, 25, 24, 23, 22, 21, 20, [5, 46]])
-        self.assertEqual(1,
+        self.assertEqual(StockSignal.buy,
                          self.goog.get_crossover_signal(date_to_check))
 
     def test_should_be_neutral_if_not_enough_days_of_data(self):
@@ -163,14 +163,14 @@ class StockCrossOverSignalTest(unittest.TestCase):
         date_to_check = datetime(2014, 2, 13)
         self.given_a_series_of_prices([
             [5, 28], [5, 27], 26, 25, 24, 23, 22, 21, 20, [5, 46]])
-        self.assertEqual(0,
+        self.assertEqual(StockSignal.neutral,
                          self.goog.get_crossover_signal(date_to_check))
 
     def test_should_pick_up_previous_closing_if_no_updates_for_a_day(self):
         date_to_check = datetime(2014, 2, 13)
         self.given_a_series_of_prices([
             29, 28, 27, 26, 25, 24, 23, 22, 21, 20, None, None, 46])
-        self.assertEqual(1,
+        self.assertEqual(StockSignal.buy,
                          self.goog.get_crossover_signal(date_to_check))
 
     def test_should_have_11_days_worth_of_data(self):
@@ -180,7 +180,7 @@ class StockCrossOverSignalTest(unittest.TestCase):
         date_to_check = datetime(2014, 2, 13)
         self.given_a_series_of_prices([
             27, 26, 25, 24, 23, 22, 21, 20, None, None, 46])
-        self.assertEqual(1,
+        self.assertEqual(StockSignal.buy,
                          self.goog.get_crossover_signal(date_to_check))
 
     def test_date_to_check_can_be_beyond_last_update_date(self):
@@ -190,5 +190,5 @@ class StockCrossOverSignalTest(unittest.TestCase):
         date_to_check = datetime(2014, 2, 15)
         self.given_a_series_of_prices([
             29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 46])
-        self.assertEqual(0,
+        self.assertEqual(StockSignal.neutral,
                          self.goog.get_crossover_signal(date_to_check))

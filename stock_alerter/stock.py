@@ -1,8 +1,15 @@
 import bisect
 import collections
 from datetime import timedelta
+from enum import Enum
 
 PriceEvent = collections.namedtuple("PriceEvent", ["timestamp", "price"])
+
+
+class StockSignal(Enum):
+    buy = 1
+    neutral = 0
+    sell = -1
 
 
 class Stock:
@@ -42,7 +49,7 @@ class Stock:
 
         # Return NEUTRAL signal
         if len(closing_price_list) < NUM_DAYS:
-            return 0
+            return StockSignal.neutral
 
         # BUY signal
         if sum([update.price for update in
@@ -52,7 +59,7 @@ class Stock:
                 and sum(
             [update.price for update in closing_price_list[-self.LONG_TERM_TIMESPAN:]]) / self.LONG_TERM_TIMESPAN < sum(
             [update.price for update in closing_price_list[-self.SHORT_TERM_TIMESPAN:]]) / self.SHORT_TERM_TIMESPAN:
-            return 1
+            return StockSignal.buy
 
         # SELL signal
         if sum([update.price for update in
@@ -62,7 +69,7 @@ class Stock:
                 and sum(
             [update.price for update in closing_price_list[-self.LONG_TERM_TIMESPAN:]]) / self.LONG_TERM_TIMESPAN > sum(
             [update.price for update in closing_price_list[-self.SHORT_TERM_TIMESPAN:]]) / self.SHORT_TERM_TIMESPAN:
-            return -1
+            return StockSignal.sell
 
         # NEUTRAL signal
-        return 0
+        return StockSignal.neutral
