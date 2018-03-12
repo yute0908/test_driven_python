@@ -51,23 +51,33 @@ class Stock:
         if len(closing_price_list) < NUM_DAYS:
             return StockSignal.neutral
 
-        # BUY signal
         long_term_series = closing_price_list[-self.LONG_TERM_TIMESPAN:]
         prev_long_term_series = closing_price_list[-self.LONG_TERM_TIMESPAN - 1:-1]
         short_term_series = closing_price_list[-self.SHORT_TERM_TIMESPAN:]
         prev_short_term_series = closing_price_list[-self.SHORT_TERM_TIMESPAN - 1:-1]
-        if sum([update.price for update in prev_long_term_series]) / self.LONG_TERM_TIMESPAN > \
-                sum([update.price for update in prev_short_term_series]) / self.SHORT_TERM_TIMESPAN \
-                and sum([update.price for update in long_term_series]) / self.LONG_TERM_TIMESPAN < \
-                sum([update.price for update in short_term_series]) / self.SHORT_TERM_TIMESPAN:
+
+        long_term_ma = sum([update.price for update in long_term_series]) / self.LONG_TERM_TIMESPAN
+        short_term_ma = sum([update.price for update in short_term_series]) / self.SHORT_TERM_TIMESPAN
+        prev_long_term_ma = sum([update.price for update in prev_long_term_series]) / self.LONG_TERM_TIMESPAN
+        prev_short_term_ma = sum([update.price for update in prev_short_term_series]) / self.SHORT_TERM_TIMESPAN
+
+        # BUY signal
+        if self._is_short_term_crossover_below_to_above(prev_short_term_ma, prev_long_term_ma, short_term_ma,
+                                                        long_term_ma):
             return StockSignal.buy
 
         # SELL signal
-        if sum([update.price for update in prev_long_term_series]) / self.LONG_TERM_TIMESPAN < \
-                sum([update.price for update in prev_short_term_series]) / self.SHORT_TERM_TIMESPAN \
-                and sum([update.price for update in long_term_series]) / self.LONG_TERM_TIMESPAN > \
-                sum([update.price for update in short_term_series]) / self.SHORT_TERM_TIMESPAN:
+        if self._is_short_term_crossover_above_to_below(prev_short_term_ma, prev_long_term_ma, short_term_ma,
+                                                        long_term_ma):
             return StockSignal.sell
 
         # NEUTRAL signal
         return StockSignal.neutral
+
+    def _is_short_term_crossover_below_to_above(self, prev_short_term_ma, prev_long_term_ma, short_term_ma,
+                                                long_term_ma):
+        return prev_long_term_ma > prev_short_term_ma and long_term_ma < short_term_ma
+
+    def _is_short_term_crossover_above_to_below(self, prev_short_term_ma, prev_long_term_ma, short_term_ma,
+                                                long_term_ma):
+        return prev_long_term_ma < prev_short_term_ma and long_term_ma > short_term_ma
