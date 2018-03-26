@@ -3,6 +3,7 @@ import collections
 from datetime import timedelta
 from enum import Enum
 
+from stock_alerter.event import Event
 from stock_alerter.timeseries import TimeSeries, MovingAverage, NotEnoughDataException
 
 
@@ -19,11 +20,13 @@ class Stock:
     def __init__(self, symbol):
         self.symbol = symbol
         self.history = TimeSeries()
+        self.updated = Event()
 
     def update(self, timestamp, price):
         if price < 0:
             raise ValueError("price should not be negative")
         self.history.update(timestamp, price)
+        self.updated.fire(self)
 
     @property
     def price(self):
