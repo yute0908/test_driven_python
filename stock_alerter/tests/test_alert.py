@@ -18,9 +18,13 @@ class TestAction:
 class AlertTest(unittest.TestCase):
     def test_action_is_executed_when_rule_matches(self):
         exchange = {"GOOG": Stock("GOOG")}
-        rule = PriceRule("GOOG", lambda stock: stock.price > 10)
-        action = TestAction()
+        rule = mock.MagicMock(spec=PriceRule)
+        rule.matches.return_value = True
+        rule.depends_on.return_value = {"GOOG"}
+        action = mock.MagicMock()
         alert = Alert("sample alert", rule, action)
         alert.connect(exchange)
         exchange["GOOG"].update(datetime(2014, 2, 10), 11)
-        self.assertTrue(action.executed)
+        action.execute.assert_called_with("sample alert")
+
+
