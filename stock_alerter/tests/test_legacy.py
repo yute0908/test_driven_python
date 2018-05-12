@@ -63,8 +63,8 @@ class AlertProcessorTest(unittest.TestCase):
 
     def test_processor_characterization_7(self):
         processor = AlertProcessor(autorun=False)
-        processor.parse_file = mock.Mock()
-        processor.parse_file.return_value = [
+        processor.reader = mock.Mock()
+        processor.reader.get_updates.return_value = [
             ('GOOG', datetime(2014, 2, 11, 14, 12, 22, 130000), 15)]
         with mock.patch("builtins.print") as mock_print:
             processor.run()
@@ -74,4 +74,12 @@ class AlertProcessorTest(unittest.TestCase):
         processor = AlertProcessor(autorun=False)
         processor.print_action = mock.Mock()
         processor.do_updates([('GOOG', datetime(2014, 2, 11, 14, 12, 22, 130000), 15)])
+        self.assertTrue(processor.print_action.called)
+
+    def test_processor_gets_values_from_reader(self):
+        mock_reader = mock.MagicMock()
+        mock_reader.get_updates.return_value = [('GOOG', datetime(2014, 2, 11, 14, 12, 22, 130000), 15)]
+        processor = AlertProcessor(autorun=False, reader=mock_reader)
+        processor.print_action = mock.Mock()
+        processor.run()
         self.assertTrue(processor.print_action.called)
